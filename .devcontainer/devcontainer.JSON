@@ -1,4 +1,5 @@
 {
   "name": "tr-silc-panel",
-  "image": "ghcr.io/enesn/scipy-notebook-dbox:052026"
+  "image": "ghcr.io/enesn/scipy-notebook-dbox:052026",
+  "runArgs": ["--memory=32g", "--memory-swap=32g"]
 }
