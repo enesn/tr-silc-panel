@@ -1,18 +1,12 @@
-from dask.dataframe import read_parquet
+
 import pandas as pd
-import pyarrow.parquet as pq
 
-_ns: dict = {}
-exec(open("01-ingest.py").read(), _ns)
-exec(open("02-join.py").read(), _ns)
 
-silc0624: pd.DataFrame = _ns["silc0624"]
-
-# Cast the two pipeline-derived columns not present in raw files.
+print("casting dtypes...")
 silc0624["max_panel_length"] = silc0624["max_panel_length"].astype(pd.Int8Dtype())
 silc0624["wave"] = silc0624["wave"].astype("category")
 
-# Build rename map from codebook (code → snake_name).
+print("reading codebook and renaming columns...")
 codebook = pd.read_excel(
     "metadata/codebook-052026.xlsx",
     sheet_name="Value labels by wave",
@@ -24,4 +18,14 @@ code_to_snake: dict[str, str] = dict(
 )
 
 silc0624 = silc0624.rename(columns=code_to_snake)
+print(f"  renamed {len(code_to_snake)} columns")
+
+print("flagging duplicate individuals...")
+_key_cols = ["wave", "max_panel_length", "survey_year", "individual_id"]
+_dup_ids = silc0624.loc[
+    silc0624.duplicated(subset=_key_cols, keep=False), "individual_id"
+].unique()
+silc0624["is_duplicate"] = silc0624["individual_id"].isin(_dup_ids)
+print(f"  {len(_dup_ids):,} individuals flagged as duplicates")
+print("done.")
 

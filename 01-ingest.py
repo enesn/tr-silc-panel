@@ -192,17 +192,18 @@ def _apply_dtypes(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def load_panel(label: str, folder: str, sep: str) -> dict[str, pd.DataFrame]:
-    # The 2008-2011 wave uses uppercase GYK; all others use lowercase gyk.
     prefix = "GYK" if label == "08091011" else "gyk"
-    # f  = individual (fert) file
-    # fk = individual characteristics (fert kayit)
-    # h  = household (hane) file
-    # hk = household characteristics (hane kayit)
-    return {
+    print(f"  loading {label}...", end=" ", flush=True)
+    dfs = {
         key: _apply_dtypes(pd.read_csv(f"{folder}/{prefix}{label}_{key}.csv", sep=sep, dtype=str, na_values=["."]))
         for key in ("f", "fk", "h", "hk")
     }
+    sizes = {k: len(v) for k, v in dfs.items()}
+    print(f"f={sizes['f']:,}  fk={sizes['fk']:,}  h={sizes['h']:,}  hk={sizes['hk']:,}")
+    return dfs
 
 
 # Load all waves; result is {label: {"f": df, "fk": df, "h": df, "hk": df}}
+print(f"loading {len(PANELS)} waves...")
 panels = {label: load_panel(label, folder, sep) for label, folder, _, sep in PANELS}
+print("done.")
