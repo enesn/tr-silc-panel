@@ -48,7 +48,7 @@ for label, dfs in panels.items():
 silc0624 = pd.concat(frames, ignore_index=True)
 
 silc0624["max_panel_length"] = (
-    silc0624.groupby(["wave", "FKIMLIK"])["max_panel_length"]
-            .transform(lambda x: x.ffill().bfill())
+    silc0624.groupby(["wave", "FKIMLIK"], sort=False, observed=True)
+            ["max_panel_length"]
+            .transform("max")
 )
-
