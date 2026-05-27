@@ -94,3 +94,100 @@ else:
         .sort_values(KEY_COLS)
         .to_string(index=False)
     )
+
+
+# ── 5. Panel composition drift ────────────────────────────────────────────
+
+print("\n=== 5. Panel composition drift by wave ===")
+print("  Checks whether the sample's structural makeup shifts suspiciously across waves.")
+print("  Expected: gradual demographic change. Suspect: abrupt jumps that suggest a")
+print("  sampling-frame change, boundary redefinition, or attrition bias taking hold.")
+
+# 5a. max_panel_length share — attrition shifts the balance toward shorter spells
+panel_len_dist = (
+    silc0624
+    .groupby(["wave", "max_panel_length"], observed=True)
+    .size()
+    .unstack("max_panel_length", fill_value=0)
+)
+panel_len_pct = panel_len_dist.div(panel_len_dist.sum(axis=1), axis=0).mul(100).round(1)
+print("\n  max_panel_length share (%) by wave:")
+print(panel_len_pct.to_string())
+
+wave_order = list(panel_len_pct.index)
+for i in range(1, len(wave_order)):
+    for pl in panel_len_pct.columns:
+        if pl not in panel_len_pct.columns:
+            continue
+        delta = panel_len_pct.loc[wave_order[i], pl] - panel_len_pct.loc[wave_order[i - 1], pl]
+        if abs(delta) > 10:
+            print(f"  FLAG  panel_length={pl}: {wave_order[i-1]}→{wave_order[i]}: {delta:+.1f}pp")
+
+# 5b. Sex ratio, mean age, urban share, mean household income — last year of each wave,
+#     broken down by max_panel_length to expose attrition-linked selection.
+#     Restricted to last year to avoid overlap bias from multi-wave individuals.
+#     Age suppressed for 06070809: FK070 was coded as age groups (1–14) in that wave,
+#     not completed years; computing a mean would be meaningless.
+#     Income (hh_total_disposable_income) is nominal TL — expect inflation-driven growth;
+#     it is shown for context but not flagged with a fixed threshold.
+
+CATEGORICAL_AGE_WAVES = {"06070809"}
+
+snapshot = silc0624[
+    silc0624["survey_year"]
+    == silc0624.groupby("wave", observed=True)["survey_year"].transform("max")
+]
+
+detail_rows = []
+for (wave, pl), grp in snapshot.groupby(["wave", "max_panel_length"], observed=True):
+    row: dict = {"wave": wave, "max_panel_length": pl, "n": len(grp)}
+    if "sex" in grp.columns:
+        row["pct_female"] = (grp["sex"] == 2).mean() * 100
+    if "age" in grp.columns and wave not in CATEGORICAL_AGE_WAVES:
+        row["mean_age"] = grp["age"].mean()
+    if "urban_rural" in grp.columns:
+        row["pct_urban"] = (grp["urban_rural"] == 1).mean() * 100
+    if "hh_total_disposable_income" in grp.columns:
+        row["median_hh_income"] = grp["hh_total_disposable_income"].median()
+    detail_rows.append(row)
+
+detail = pd.DataFrame(detail_rows).set_index(["wave", "max_panel_length"])
+print("\n  Demographic & income snapshot by (wave, max_panel_length):")
+print(detail.round(1).to_string())
+
+# Collapse to wave level for drift flagging (mean_age weighted by n)
+wave_rows = []
+for wave, grp in snapshot.groupby("wave", observed=True):
+    row2: dict = {"wave": wave}
+    if "sex" in grp.columns:
+        row2["pct_female"] = (grp["sex"] == 2).mean() * 100
+    if "age" in grp.columns and wave not in CATEGORICAL_AGE_WAVES:
+        row2["mean_age"] = grp["age"].mean()
+    if "urban_rural" in grp.columns:
+        row2["pct_urban"] = (grp["urban_rural"] == 1).mean() * 100
+    wave_rows.append(row2)
+
+wave_summary = pd.DataFrame(wave_rows).set_index("wave")
+
+DRIFT_THRESHOLDS = {"pct_female": 2.0, "mean_age": 1.0, "pct_urban": 3.0}
+drift_flags = []
+for i in range(1, len(wave_order)):
+    w0, w1 = wave_order[i - 1], wave_order[i]
+    for metric, thr in DRIFT_THRESHOLDS.items():
+        if metric not in wave_summary.columns:
+            continue
+        if w0 not in wave_summary.index or w1 not in wave_summary.index:
+            continue
+        v0, v1 = wave_summary.loc[w0, metric], wave_summary.loc[w1, metric]
+        if pd.notna(v0) and pd.notna(v1) and abs(v1 - v0) > thr:
+            drift_flags.append(f"  FLAG  {metric}: {w0}→{w1}: {v1 - v0:+.2f}")
+
+if drift_flags:
+    print()
+    for f in drift_flags:
+        print(f)
+else:
+    print("\n  PASSED  no demographic drift above thresholds (wave-level aggregates)")
+
+
+# ── 6. Weight Smoothness (soon) ─────────────────────
