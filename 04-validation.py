@@ -244,8 +244,3 @@ else:
 
 
 # ── 6. Weight Smoothness (soon) ─────────────────────
-
-(silc0624[silc0624["max_panel_length"] == 2]
-    .groupby(["wave", "survey_year"], observed=True)
-    .agg(pop = ("panel_weight_2y", "sum"), n=("panel_weight_2y", "size"))
-)

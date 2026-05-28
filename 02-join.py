@@ -27,7 +27,7 @@ def join_panel(dfs: dict[str, pd.DataFrame]) -> pd.DataFrame:
         .merge(
             hk,
             on=["HKIMLIK", "FB010"],
-            how="left"
+            how="right"
         )
 )
 
