@@ -8,6 +8,11 @@ def join_panel(dfs: dict[str, pd.DataFrame]) -> pd.DataFrame:
     h  = dfs["h"].rename(columns={"HB010": "FB010"})
     hk = dfs["hk"].rename(columns={"HK010": "FB010"})
 
+    # fk is the authoritative individual roster; f/h/hk are joined in
+    # where available. RIGHT JOIN fk keeps panel-tracked individuals even
+    # if they have no survey record in f (e.g. attrition year). LEFT JOIN
+    # hk avoids phantom rows from the ~3,900 hk-only households that carry
+    # no individuals.
     return (
         f.merge(
             fk,
@@ -22,7 +27,7 @@ def join_panel(dfs: dict[str, pd.DataFrame]) -> pd.DataFrame:
         .merge(
             hk,
             on=["HKIMLIK", "FB010"],
-            how="right"
+            how="left"
         )
 )
 

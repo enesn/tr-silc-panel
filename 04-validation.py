@@ -59,6 +59,59 @@ n_mismatch = (cmp["delta"] != 0).sum()
 print(f"\n  {'PASSED:' if n_mismatch == 0 else 'FAILED'}  {n_mismatch} (wave, year) combos with mismatched counts")
 
 
+# ── 2b. Unique individuals by wave × max_panel_length ────────────────────
+
+print("\n=== 2b. Unique individuals by wave × max_panel_length ===")
+
+uniq = (
+    silc0624
+    .groupby(["wave", "max_panel_length"], observed=True)["individual_id"]
+    .nunique()
+    .unstack("max_panel_length")
+)
+uniq.columns = [f"len={int(c)}" if pd.notna(c) else "len=NA" for c in uniq.columns]
+uniq["total"] = uniq.sum(axis=1)
+print(uniq.to_string())
+print(f"\n  total unique individuals across all waves: {silc0624['individual_id'].nunique():,}")
+
+
+# ── 2c. Reconcile selected waves against published TÜİK sample sizes ─────
+# Published figures are CUMULATIVE (≥ x years), while max_panel_length is
+# EXCLUSIVE.  Mapping: 4-yr = len=4; 3-yr = len≥3; 2-yr = total (all).
+# Sources:
+#   19202122 — "sırasıyla 61 313, 40 040 ve 19 669 ferttir"
+#   20212223 — "sırasıyla 57 705, 37 402 ve 18 478 ferttir"
+#   21222324 — "56 612 … two-year; 36 680 … three-year; 17 839 … four-year"
+
+print("\n=== 2c. Reconcile against published sample sizes ===")
+
+PUBLISHED = {
+    "19202122": {4: 19_669, 3: 40_040, 2: 61_313},
+    "20212223": {4: 18_478, 3: 37_402, 2: 57_705},
+    "21222324": {4: 17_839, 3: 36_680, 2: 56_612},
+}
+
+all_rows = []
+for wave, pub in PUBLISHED.items():
+    w_counts = uniq.loc[wave]
+    observed = {
+        4: int(w_counts.get("len=4", 0)),
+        3: int(w_counts.get("len=3", 0) + w_counts.get("len=4", 0)),
+        2: int(w_counts["total"]),
+    }
+    for pl, published in pub.items():
+        got = observed[pl]
+        all_rows.append({"wave": wave, "panel_length": pl, "published": published, "data": got, "delta": got - published})
+
+rec = pd.DataFrame(all_rows).set_index(["wave", "panel_length"])
+print(rec.to_string())
+n_fail = (rec["delta"] != 0).sum()
+if n_fail == 0:
+    print("\n  PASSED  all counts match published figures")
+else:
+    print(f"\n  FLAG  {n_fail} mismatches above")
+
+
 # ── 3. Null key identifiers ───────────────────────────────────────────────
 
 print("\n=== 3. Null key identifiers in pooled data ===")
@@ -191,3 +244,8 @@ else:
 
 
 # ── 6. Weight Smoothness (soon) ─────────────────────
+
+(silc0624[silc0624["max_panel_length"] == 2]
+    .groupby(["wave", "survey_year"], observed=True)
+    .agg(pop = ("panel_weight_2y", "sum"), n=("panel_weight_2y", "size"))
+)
