@@ -47,7 +47,7 @@ The `raw-data/` folder is **not distributed** with this repository -- it contain
 3. **Edit `config.py`** to set your output directory and version:
    ```python
    DEPLOY_DIR    = Path("/your/output/path")
-   VERSION       = "tr-silc-panel202606"
+   VERSION       = "tr-silc-panel202605"
    CODEBOOK_PATH = Path("metadata/codebook-202605.xlsx")
    ```
 
