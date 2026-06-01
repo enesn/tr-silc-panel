@@ -10,7 +10,7 @@ Harmonised longitudinal panel dataset built from 12 rolling waves of the Turkish
 
 ## Getting started
 
-The `raw-data/` folder is **not distributed** with this repository — it contains proprietary TÜİK microdata that cannot be shared publicly. You must obtain the raw panel files directly from TÜİK and place them in the expected folder structure before running anything.
+The `raw-data/` folder is **not distributed** with this repository -- it contains proprietary TÜİK microdata that cannot be shared publicly. You must obtain the raw panel files directly from TÜİK and place them in the expected folder structure before running anything.
 
 **Steps:**
 
