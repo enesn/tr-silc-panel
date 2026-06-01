@@ -171,6 +171,6 @@ Requires Python 3.12, `pandas`, `pyarrow`, `openpyxl`, `PyYAML`. Raw source CSVs
 
 ---
 
-## Repo
+## EconOps
 
-`github.com/enesn/tr-silc-panel` — maintained by [@enesn](https://github.com/enesn)
+The output of this repo is a data layer of the EconOps workflow (see `github.com/enesn/econops`). 
