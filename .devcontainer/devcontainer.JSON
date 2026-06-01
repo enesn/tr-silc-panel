@@ -3,6 +3,6 @@
   "image": "enesn/python3.12-slim:v1",
   "runArgs": ["--memory=32g", "--memory-swap=32g"],
   "mounts": [
-    "source=/Users/enes/Dropbox/Apps/tr-silc/202605,target=/mnt/dropbox-out,type=bind"
+    "source=/Users/enes/Dropbox/Apps/tr-silc-panel/202605,target=/mnt/dropbox-out,type=bind"
   ]
 }
