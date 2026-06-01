@@ -157,7 +157,7 @@ TÜİK codebook manually edited alongside the parquet. Two sheets are consumed b
 01-ingest.py   — load each wave's four CSVs; apply codebook-informed dtypes
 02-join.py     — RIGHT JOIN fk → merge f, h, hk; derive max_panel_length
 03-clean.py    — cast final dtypes; rename columns from TÜİK codes; flag duplicates
-04-validation.py — run quality checks (recommended before deploy)
+04-validation.py — run quality checks
 05-deploy.py   — embed codebook metadata in Arrow schema; write parquet + manifest
 ```
 
