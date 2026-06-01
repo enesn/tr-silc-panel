@@ -1,9 +1,3 @@
-import pandas as pd
-
-exec(open("01-ingest.py").read())
-exec(open("02-join.py").read())
-exec(open("03-clean.py").read())
-
 KEY_COLS = ["wave", "max_panel_length", "survey_year", "individual_id"]
 
 
