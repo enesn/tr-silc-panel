@@ -1,4 +1,5 @@
 
+from config import CODEBOOK_PATH
 import pandas as pd
 
 
@@ -8,7 +9,7 @@ silc0624["wave"] = silc0624["wave"].astype("category")
 
 print("reading codebook and renaming columns...")
 codebook = pd.read_excel(
-    "metadata/codebook-202605.xlsx",
+    CODEBOOK_PATH,
     sheet_name="Value labels by wave",
     usecols=["Variable code", "Variable name"],
 ).dropna(subset=["Variable code"]).drop_duplicates(subset="Variable code")
