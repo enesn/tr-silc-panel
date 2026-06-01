@@ -174,4 +174,5 @@ TÜİK codebook manually edited alongside the parquet. Two sheets are consumed b
 
 ## EconOps
 
-The output of this repo is a data layer of the EconOps workflow (see `github.com/enesn/econops`). 
+The output of this repo is a data layer of the EconOps workflow (see `github.com/enesn/econops`). A co-author and replicator who have a valid permission will be able to replicate a paper based on this dataset. 
+
