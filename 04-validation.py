@@ -243,4 +243,4 @@ else:
     print("\n  PASSED  no demographic drift above thresholds (wave-level aggregates)")
 
 
-# ── 6. Weight Smoothness (soon) ─────────────────────
+# ── 6. Weight smoothness ─────────────────────────────────────────────────
