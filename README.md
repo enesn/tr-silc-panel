@@ -2,9 +2,39 @@
 
 Harmonised longitudinal panel dataset built from 12 rolling waves of the Turkish Statistics Institute (TÜİK) Income and Living Conditions Survey (**GYKA / SILC**), covering survey years 2006–2024. 
 
-**Current release:** `tr-silc-panel202606`  
+**Current release:** `tr-silc-panel202605`  
 **Produced by:** `05-deploy.py`  
 **Output artefacts:** `silc0624.parquet` · `manifest.yaml` 
+
+---
+
+## Getting started
+
+The `raw-data/` folder is **not distributed** with this repository — it contains proprietary TÜİK microdata that cannot be shared publicly. You must obtain the raw panel files directly from TÜİK and place them in the expected folder structure before running anything.
+
+**Steps:**
+
+1. **Obtain the raw data.** Download the GYKA panel releases from TÜİK. Each wave ships as four CSV files (`_f`, `_fk`, `_h`, `_hk`).
+
+2. **Place files under `raw-data/`.** Match the folder paths listed in the [Panel waves](#panel-waves) table below — for example:
+   ```
+   raw-data/GYKA_Panel_2021-2024/csv_TURKÇE/gyk21222324_f.csv
+   raw-data/GYKA_Panel_2021-2024/csv_TURKÇE/gyk21222324_fk.csv
+   ...
+   ```
+   The exact subfolder names are defined in `01-ingest.py` (`PANELS` list).
+
+3. **Edit `config.py`** to set your output directory and version:
+   ```python
+   DEPLOY_DIR    = Path("/your/output/path")
+   VERSION       = "tr-silc-panel202606"
+   CODEBOOK_PATH = Path("metadata/codebook-202605.xlsx")
+   ```
+
+4. **Run the pipeline:**
+   ```bash
+   python 05-deploy.py
+   ```
 
 ---
 
@@ -38,17 +68,6 @@ Column-level metadata is embedded in the Arrow schema under the `codebook` key a
 }
 ```
 
-Read it in Python:
-
-```python
-import pyarrow.parquet as pq, json
-
-pf = pq.ParquetFile("silc0624.parquet")
-for field in pf.schema_arrow:
-    meta = field.metadata or {}
-    if b"codebook" in meta:
-        print(field.name, json.loads(meta[b"codebook"]))
-```
 
 ### `manifest.yaml`
 
@@ -62,7 +81,7 @@ Machine-readable provenance sidecar. Sections:
 
 ### `codebook-202605.xlsx`
 
-TÜİK codebook shipped alongside the parquet. Two sheets are consumed by the pipeline:
+TÜİK codebook manually edited alongside the parquet. Two sheets are consumed by the pipeline:
 
 | Sheet | Used for |
 |---|---|
